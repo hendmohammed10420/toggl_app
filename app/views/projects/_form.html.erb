@@ -1,0 +1,27 @@
+<div class="d-flex justify-content-between">
+  <%= form_with(model: project) do |form| %>
+    <% if project.errors.any? %>
+      <div style="color: red">
+        <h2><%= pluralize(project.errors.count, "error") %> prohibited this project from being saved:</h2>
+        <ul>
+          <% project.errors.each do |error| %>
+            <li><%= error.full_message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= form.label :name, style: "display: block" %>
+      <br>
+      <%= form.text_field :name %>
+    </div>
+
+    <div class="d-flex justify-content-start mt-5">
+      <%= form.button :submit, class: "btn btn-success me-2" %>
+      <%= link_to "Cancel", projects_path, class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+
+  <%= image_tag "create-edit.png", alt: "Project Image", class: "img-fluid", style: "max-width: 10em;" %>
+</div>

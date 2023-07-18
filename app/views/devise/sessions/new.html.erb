@@ -1,0 +1,36 @@
+<div class="row post-container" style="margin-top: 2em;">
+  <div class="col-12" style="margin: auto; margin-top: 2em; margin-bottom: 2em;">
+    <div style="display: flex; align-items: center;">
+      <h2 style="margin-right: auto;">Log in</h2>
+    </div>
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+      <br>
+      <% if request.post? && f.object.email.blank? && f.object.password.blank?  ||request.post? && f.object.email && f.object.password.blank? ||request.post? && f.object.email.blank? && f.object.password
+      %>
+      
+        <strong class="text-danger">All form fields are required</strong>
+      <% end %>
+      <br>     
+       <div class="field <%= 'field_with_errors' if f.object.errors.include?(:email) %>">
+        <%= f.label :email %> <span class="text-danger"></span><br>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "name@example.com" %>
+        <% if f.object.errors.include?(:email) %>
+          <div class="text-danger"><%= f.object.errors[:email].first %></div>
+        <% end %>
+      </div>
+      <br>
+      <div class="field <%= 'field_with_errors' if f.object.errors.include?(:password) %>">
+        <%= f.label :password %> <span class="text-danger"></span><br>
+        <%= f.password_field :password, autocomplete: "current-password", class: "form-control" %>
+        <% if f.object.errors.include?(:password) %>
+          <div class="text-danger"><%= f.object.errors[:password].first %></div>
+        <% end %>
+      </div>
+      <br>
+      <div class="actions" style="margin-top: 1em;">
+        <%= f.submit "Log in", class: "btn btn-primary col-12" %>
+      </div>
+    <% end %>
+    <%= render "devise/shared/links" %>
+  </div>
+</div>

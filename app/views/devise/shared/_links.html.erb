@@ -1,0 +1,15 @@
+<div class="container text-center">
+<%- if controller_name != 'sessions' %>
+  <br/>
+  <span>
+    Already have an account? <strong><%= link_to "Sign in", new_session_path(resource_name), class: "nav-link text-primary" %></strong>
+  </span>
+<% end %>
+
+<%- if devise_mapping.registerable? && controller_name != 'registrations' %>
+  <br/>
+  <span>
+    Don't have an account? <strong><%= link_to "Sign up", new_registration_path(resource_name), class: "nav-link text-primary" %></strong>
+  </span>
+<% end %>
+</div>

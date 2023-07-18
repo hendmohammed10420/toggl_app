@@ -1,0 +1,38 @@
+<div class="d-flex justify-content-between">
+<%= form_with(model: task) do |form| %>
+  <% if task.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(task.errors.count, "error") %> prohibited this task from being saved:</h2>
+
+      <ul>
+        <% task.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :name, style: "display: block" %>
+    <%= form.text_field :name %>
+  </div>
+
+  <div>
+  
+    <%= form.label :project_id, style: "display: none" %>
+<%= form.hidden_field :project_id, value: task.project.id %>
+  </div>
+
+ <div>
+    <%= form.label :body, style: "display: block" %>
+    <%= form.text_field :body %>
+  </div>
+
+ <div class="d-flex justify-content-start mt-5">
+    <%= form.button :submit, class: "btn btn-success me-2" %>
+    <%= link_to "Cancel", projects_path, class: "btn btn-secondary" %>
+
+  </div>
+<% end %>
+  <%= image_tag "create-edit.png", alt: "Project Image", class: "img-fluid", style: "max-width: 10em;" %>
+  </div>
