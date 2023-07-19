@@ -3,8 +3,10 @@
 <div class="container  mt-5" style="justify-content: center; align-items: center;">
 
   <% if @projects.length == 0 %>
-  
+  <div class="container text-center  mt-5" style="justify-content: center; align-items: center;">
+
   <h1>You don't have any project yet</h1>
+   </div>
     <%= image_tag "empty-box.png", alt: "No projects to show", class: "img-fluid mx-auto d-block" %> 
     </div>
      <% else %>

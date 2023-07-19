@@ -1,4 +1,8 @@
 <div class="container text-center" style="margin-top: 15%;">
-  <h1>Welcome To toggl-app</h1>
+  <% if current_user %>
+    <h1>Welcome <%= current_user.name %> To toggl-app</h1>
+  <% else %>
+    <h1>Welcome To toggl-app</h1>
+  <% end %>
   <%= image_tag "image.png", alt: "Description of the image" %>
 </div>
