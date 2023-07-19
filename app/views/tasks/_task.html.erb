@@ -4,10 +4,10 @@
 <div class="card-body">
 <%= task.body %>
    <div class="d-flex justify-content-start mt-5">
-      <%= button_to "Start", "#", class: "btn btn-success me-2 start-timer", data: { task_id: task.id }, method: :post %>
-      <%= button_to "Stop", "#", class: "btn btn-secondary me-2 stop-timer", data: { task_id: task.id }, method: :post %>
-      <%= button_to "Delete", "/tasks/#{task.id}", method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger me-2" %>
-      <%= button_to "Edit", edit_task_path(task), method: :get,class: "btn btn-primary me-2" %>
+         <%= button_to "Start ", "#", method: :put ,class: "btn btn-success me-2", data: { task_id: task.id, initial_time: task.start_time }, remote: true %>
+         <%= button_to "Stop ", "#", method: :put ,class: "btn btn-secondary me-2", data: { task_id: task.id }, remote: true, disabled: true %>
+         <%= button_to "Delete", "/tasks/#{task.id}", method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger me-2" %>
+         <%= button_to "Edit", edit_task_path(task), method: :get,class: "btn btn-primary me-2" %>
   <div >
         <p class="text-muted mb-1 ms-2">  Time elapsed:</p>
         <p class="timer ms-2" data-task-id="<%= task.id %>">  00:00:00</p>
@@ -20,49 +20,75 @@
 </div>
 
 <script>
-  $(document).ready(function() {
-    var timers = {}; // object to store timer intervals and start times
+  var currentTimerId = null;
+  var timers = {};
+  var elapsedTimes = {};
 
-    // start timer when start button is clicked
-    $('.start-timer').on('click', function(event) {
-      event.preventDefault();
-      var taskId = $(this).data('task-id');
-      var startTime = new Date().getTime(); // get current time
-      var timer = setInterval(function() {
-        var elapsedTime = new Date().getTime() - startTime; // subtract start time from current time
-        var hours = Math.floor(elapsedTime / 3600000); // convert milliseconds to hours
-        var minutes = Math.floor((elapsedTime % 3600000) / 60000); // convert remaining milliseconds to minutes
-        var seconds = Math.floor((elapsedTime % 60000) / 1000); // convert remaining milliseconds to seconds
-        var formattedTime = pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2); // format time as HH:MM:SS
-        $('.timer[data-task-id="' + taskId + '"]').text(formattedTime); // update timer display
-      }, 1000); // update timer every second
-      timers[taskId] = { timer: timer, startTime: startTime }; // store timer interval and start time in object
-    });
-
-    // stop timer when stop button is clicked
-    $('.stop-timer').on('click', function(event) {
-      event.preventDefault();
-      var taskId = $(this).data('task-id');
-      var timerInfo = timers[taskId];
-      if (timerInfo) {
-        clearInterval(timerInfo.timer); // stop timer interval
-        delete timers[taskId]; // remove timer interval and start time from object
-        var elapsedTime = new Date().getTime() - timerInfo.startTime; // calculate elapsed time
-        var hours = Math.floor(elapsedTime / 3600000); // convert milliseconds to hours
-        var minutes = Math.floor((elapsedTime % 3600000) / 60000); // convert remaining milliseconds to minutes
-        var seconds = Math.floor((elapsedTime % 60000) / 1000); // convert remaining milliseconds to seconds
-        var formattedTime = pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2); // format time as HH:MM:SS
-        $('.timer[data-task-id="' + taskId + '"]').text(formattedTime); // update timer display
-      }
-    });
-
-    // pad number with zeros to specified length
-    function pad(num, length) {
-      var str = num.toString();
-      while (str.length < length) {
-        str = "0" + str;
-      }
-      return str;
+  function stopTimer(taskId) {
+    if (!timers[taskId]) {
+      return;
     }
+
+    clearInterval(timers[taskId]);
+    var startButton = document.querySelector("button.start[data-task-id='" + taskId + "']");
+    startButton.disabled = false;
+    var stopButton = document.querySelector("button.stop[data-task-id='" + taskId + "']");
+    stopButton.disabled = true;
+
+    var elapsedTime = elapsedTimes[taskId];
+    var taskEl = document.getElementById("elapsed-time-" + taskId);
+    taskEl.textContent = elapsedTime;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+    var url = "/tasks/" + taskId;
+
+    fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      body: JSON.stringify({ task: { time_elapsed: elapsedTime } })
+    })
+    .then(function(response) {
+      if (response.ok) {
+        console.log("Time elapsed updated successfully!");
+      } else {
+        console.error("Failed to update time elapsed.");
+      }
+    })
+    .catch(function(error) {
+      console.error("Failed to update time elapsed:", error);
+    });
+
+    currentTimerId = null;
+  }
+
+  document.querySelectorAll(".start").forEach(function(startButton) {
+    var taskId = startButton.dataset.taskId;
+    var initialTime = startButton.dataset.initialTime;
+
+    startButton.addEventListener("click", function() {
+      if (currentTimerId) {
+        stopTimer(currentTimerId);
+      }
+
+      elapsedTimes[taskId] = parseInt(document.getElementById("elapsed-time-" + taskId).textContent || initialTime);
+      timers[taskId] = setInterval(function() {
+        elapsedTimes[taskId]++;
+        document.getElementById("elapsed-time-" + taskId).textContent = elapsedTimes[taskId];
+
+        // Enable the "Stop Timer" button if the counter is working
+        var stopButton = document.querySelector("button.stop-timer[data-task-id='" + taskId + "']");
+        stopButton.disabled = false;
+      }, 1000);
+ startButton.disabled = true;
+      currentTimerId = taskId;
+    });
+
+    var stopButton = startButton.nextElementSibling;
+    stopButton.addEventListener("click", function() {
+      stopTimer(taskId);
+    });
   });
 </script>
