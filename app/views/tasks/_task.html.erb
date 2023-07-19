@@ -1,17 +1,68 @@
 <div id="<%= dom_id task %>">
-<div class="card  bg-light mt-5" style="max-width: 20em;">
+<div class="card  bg-light mt-5" style="max-width: 30em;">
 <div class="card-header"><%= task.name %></div>
 <div class="card-body">
 <%= task.body %>
    <div class="d-flex justify-content-start mt-5">
-      <%= link_to "Start", "#", class: "btn btn-success me-2 start-timer", data: { task_id: task.id } %>
-      <%= link_to "Stop", "#", class: "btn btn-secondary me-2 stop-timer", data: { task_id: task.id } %>
+      <%= button_to "Start", "#", class: "btn btn-success me-2 start-timer", data: { task_id: task.id }, method: :post %>
+      <%= button_to "Stop", "#", class: "btn btn-secondary me-2 stop-timer", data: { task_id: task.id }, method: :post %>
       <%= button_to "Delete", "/tasks/#{task.id}", method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger me-2" %>
       <%= button_to "Edit", edit_task_path(task), method: :get,class: "btn btn-primary me-2" %>
+  <div >
+        <p class="text-muted mb-1 ms-2">  Time elapsed:</p>
+        <p class="timer ms-2" data-task-id="<%= task.id %>">  00:00:00</p>
+      </div>
   </div>
+ 
   </div>
  </div>
 
 </div>
 
+<script>
+  $(document).ready(function() {
+    var timers = {}; // object to store timer intervals and start times
 
+    // start timer when start button is clicked
+    $('.start-timer').on('click', function(event) {
+      event.preventDefault();
+      var taskId = $(this).data('task-id');
+      var startTime = new Date().getTime(); // get current time
+      var timer = setInterval(function() {
+        var elapsedTime = new Date().getTime() - startTime; // subtract start time from current time
+        var hours = Math.floor(elapsedTime / 3600000); // convert milliseconds to hours
+        var minutes = Math.floor((elapsedTime % 3600000) / 60000); // convert remaining milliseconds to minutes
+        var seconds = Math.floor((elapsedTime % 60000) / 1000); // convert remaining milliseconds to seconds
+        var formattedTime = pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2); // format time as HH:MM:SS
+        $('.timer[data-task-id="' + taskId + '"]').text(formattedTime); // update timer display
+      }, 1000); // update timer every second
+      timers[taskId] = { timer: timer, startTime: startTime }; // store timer interval and start time in object
+    });
+
+    // stop timer when stop button is clicked
+    $('.stop-timer').on('click', function(event) {
+      event.preventDefault();
+      var taskId = $(this).data('task-id');
+      var timerInfo = timers[taskId];
+      if (timerInfo) {
+        clearInterval(timerInfo.timer); // stop timer interval
+        delete timers[taskId]; // remove timer interval and start time from object
+        var elapsedTime = new Date().getTime() - timerInfo.startTime; // calculate elapsed time
+        var hours = Math.floor(elapsedTime / 3600000); // convert milliseconds to hours
+        var minutes = Math.floor((elapsedTime % 3600000) / 60000); // convert remaining milliseconds to minutes
+        var seconds = Math.floor((elapsedTime % 60000) / 1000); // convert remaining milliseconds to seconds
+        var formattedTime = pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2); // format time as HH:MM:SS
+        $('.timer[data-task-id="' + taskId + '"]').text(formattedTime); // update timer display
+      }
+    });
+
+    // pad number with zeros to specified length
+    function pad(num, length) {
+      var str = num.toString();
+      while (str.length < length) {
+        str = "0" + str;
+      }
+      return str;
+    }
+  });
+</script>
