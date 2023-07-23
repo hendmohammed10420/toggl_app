@@ -3,28 +3,31 @@
 <div class="card-header"><%= task.name %></div>
 <div class="card-body">
 <%= task.body %>
+
    <div class="d-flex justify-content-start mt-5">
-         <%= button_to "Start ", "#", method: :put ,class: "btn btn-success me-2", data: { task_id: task.id, initial_time: task.start_time }, remote: true %>
-         <%= button_to "Stop ", "#", method: :put ,class: "btn btn-secondary me-2", data: { task_id: task.id }, remote: true, disabled: true %>
-         <%= button_to "Delete", "/tasks/#{task.id}", method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger me-2" %>
-         <%= button_to "Edit", edit_task_path(task), method: :get,class: "btn btn-primary me-2" %>
-  <div >
-        <p class="text-muted mb-1 ms-2">  Time elapsed:</p>
-        <p class="timer ms-2" data-task-id="<%= task.id %>">  00:00:00</p>
-      </div>
-  </div>
+        <button class="start btn btn-success me-2" style=" height: 36px; width: 70px;" data-task-id="<%= task.id %>" data-initial-time="<%= task.elapsed || 0 %>">Start </button>    
+        <button class="stop btn btn-secondary me-2" style=" height: 36px; width: 70px;" data-task-id="<%= task.id %>" disabled>Stop </button>
+        <%= button_to "Delete", "/tasks/#{task.id}", method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger me-2" %>
+        <%= button_to "Edit", edit_task_path(task), method: :get,class: "btn btn-primary me-2" %>
+    </div>
+
+      <div class="timer mt-4">
+            <span class="text-muted mb-1 ms-2">  Time elapsed: </span>
+            <span id="elapsed-time-<%= task.id %>"><%= task.elapsed %></span> seconds
+       </div>
  
   </div>
  </div>
 
 </div>
 
+
 <script>
-  var currentTimerId = null;
+var currentTimerId = null;
   var timers = {};
   var elapsedTimes = {};
 
-  function stopTimer(taskId) {
+   function stopTimer(taskId) {
     if (!timers[taskId]) {
       return;
     }
@@ -48,8 +51,8 @@
         "Content-Type": "application/json",
         "X-CSRF-Token": csrfToken
       },
-      body: JSON.stringify({ task: { time_elapsed: elapsedTime } })
-    })
+    body: JSON.stringify({ task: { elapsed: elapsedTime } })
+   })
     .then(function(response) {
       if (response.ok) {
         console.log("Time elapsed updated successfully!");
@@ -74,15 +77,28 @@
       }
 
       elapsedTimes[taskId] = parseInt(document.getElementById("elapsed-time-" + taskId).textContent || initialTime);
-      timers[taskId] = setInterval(function() {
-        elapsedTimes[taskId]++;
-        document.getElementById("elapsed-time-" + taskId).textContent = elapsedTimes[taskId];
+     
+    //  timers[taskId] = setInterval(function() {
+    //     elapsedTimes[taskId]++;
+    //           console.log(`Task elapsed times: ${elapsedTimes[taskId]}`);
 
-        // Enable the "Stop Timer" button if the counter is working
-        var stopButton = document.querySelector("button.stop-timer[data-task-id='" + taskId + "']");
-        stopButton.disabled = false;
-      }, 1000);
- startButton.disabled = true;
+    //     document.getElementById("elapsed-time-" + taskId).textContent = elapsedTimes[taskId];
+
+    //     var stopButton = document.querySelector("button.stop[data-task-id='" + taskId + "']");
+    //     stopButton.disabled = false;
+    //   }, 1000);
+    timers[taskId] = setInterval(function() {
+  elapsedTimes[taskId]++;
+  var hours = Math.floor(elapsedTimes[taskId] / 3600);
+  var minutes = Math.floor((elapsedTimes[taskId] % 3600) / 60);
+  var seconds = elapsedTimes[taskId] % 60;
+  var formattedTime = ("0" + hours).slice(-2) + ":" + ("0" + minutes).slice(-2) + ":" + ("0" + seconds).slice(-2);
+  document.getElementById("elapsed-time-" + taskId).textContent = formattedTime;
+  var stopButton = document.querySelector("button.stop[data-task-id='" + taskId + "']");
+  stopButton.disabled = false;
+}, 1000);
+
+      startButton.disabled = true;
       currentTimerId = taskId;
     });
 
